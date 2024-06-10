@@ -1,5 +1,8 @@
 const http = require('http');
-const d = new Date();
+
+let receivedData = [];
+
+const PORT = process.env.PORT || 3000;
 
 const server = http.createServer((req, res) => {
   // Set CORS headers
@@ -14,21 +17,28 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let requestData = '';
+  if (req.method === 'POST') {
+    let requestData = '';
 
-  req.on('data', chunk => {
-    requestData += chunk;
-  });
+    req.on('data', chunk => {
+      requestData += chunk;
+    });
 
-  req.on('end', () => {
-    console.log('Received data:', requestData);
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    console.log(`Catch Data--`);
-    res.end('ok');
-  });
+    req.on('end', () => {
+      console.log('Received data:', requestData);
+      receivedData.push(JSON.parse(requestData)); // Store the received data
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('ok');
+    });
+  } else if (req.method === 'GET' && req.url === '/view-data') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(receivedData));
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
+  }
 });
 
-const PORT = 3000;
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}/`);
 });
