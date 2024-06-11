@@ -25,10 +25,18 @@ const server = http.createServer((req, res) => {
     });
 
     req.on('end', () => {
-      console.log('Received data:', requestData);
-      receivedData.push(JSON.parse(requestData)); // Store the received data
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end('ok');
+      console.log('Received raw data:', requestData);
+      try {
+        const parsedData = JSON.parse(requestData);
+        console.log('Parsed data:', parsedData);
+        receivedData.push(parsedData); // Store the received data
+        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.end('ok');
+      } catch (e) {
+        console.error('Failed to parse data:', e);
+        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        res.end('Bad Request');
+      }
     });
   } else if (req.method === 'GET' && req.url === '/view-data') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
